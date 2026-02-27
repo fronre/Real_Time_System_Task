@@ -1,0 +1,13 @@
+
+========= REAL-TIME SYSTEM RESULTS =========
+Execution Date: 2026-02-26 11:59:31.533925
+Total Runtime: 30 seconds
+Quantum: 2 seconds
+
+Sound Cycles: 10
+CPU Cycles: 16
+CPU Samples Taken: 30
+Average CPU Usage: 20.16%
+
+System Stopped Successfully
+============================================
