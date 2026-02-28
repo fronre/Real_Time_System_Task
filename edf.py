@@ -1,116 +1,73 @@
+import threading
 import time
-import heapq
 import psutil
-import pygame
-import numpy as np
+from datetime import datetime
 
-TOTAL_RUNTIME = 30  # مدة التشغيل بالثواني
+quantum = 2
+max_cycles = 20
 
-# -------- تهيئة الصوت (Stereo) --------
-pygame.mixer.init(frequency=44100, size=-16, channels=2)
+sound_cycles = 0
+cpu_cycles = 0
+monitor_cycles = 0
+cpu_samples = []
 
-def play_tone(duration=0.5, freq=440):
-    sample_rate = 44100
-    n_samples = int(sample_rate * duration)
+# ---------------- SOUND TASK ----------------
+def sound_task():
+    global sound_cycles
+    while sound_cycles < max_cycles:
+        print("🔊 Sound Task Running")
+        sound_cycles += 1
+        time.sleep(quantum)
 
-    t = np.linspace(0, duration, n_samples, False)
-    wave = 0.5 * np.sin(2 * np.pi * freq * t)
+# ---------------- MONITOR TASK ----------------
+def monitor_task():
+    global monitor_cycles, cpu_samples
 
-    audio = np.array(wave * 32767, dtype=np.int16)
+    while monitor_cycles < max_cycles:
+        cpu = psutil.cpu_percent(interval=1)
+        cpu_samples.append(cpu)
+        print(f"📊 CPU Usage: {cpu}%")
+        monitor_cycles += 1
 
-    # تحويل إلى Stereo
-    stereo_audio = np.column_stack((audio, audio))
+# ---------------- CPU TASK ----------------
+def cpu_task():
+    global cpu_cycles
+    number = 1
 
-    sound = pygame.sndarray.make_sound(stereo_audio)
-    sound.play()
-    time.sleep(duration)
+    while cpu_cycles < max_cycles:
+        slice_start = time.time()
+        while time.time() - slice_start < quantum:
+            number += 1
+            _ = all(number % i != 0 for i in range(2, int(number**0.5) + 1))
+        cpu_cycles += 1
+        print("⚙ CPU Task Cycle Done")
 
+# ---------------- MAIN ----------------
+def main():
 
-# -------- تعريف Task --------
-class Task:
-    def __init__(self, name, period, execution_time):
-        self.name = name
-        self.period = period
-        self.execution_time = execution_time
-        self.next_release = 0
-        self.deadline = period
-        self.instances = 0
-        self.missed_deadlines = 0
+    print(f"\nSystem Running for {max_cycles} cycles per task...\n")
 
-    def release(self, current_time):
-        if current_time >= self.next_release:
-            self.deadline = self.next_release + self.period
-            self.next_release += self.period
-            self.instances += 1
-            return True
-        return False
+    t1 = threading.Thread(target=sound_task)
+    t2 = threading.Thread(target=monitor_task)
+    t3 = threading.Thread(target=cpu_task)
 
+    t1.start()
+    t2.start()
+    t3.start()
 
-# -------- تعريف التاسكات --------
-tasks = [
-    Task("Sound Task", period=6, execution_time=1),
-    Task("Monitor Task", period=8, execution_time=2),
-    Task("CPU Task", period=10, execution_time=3),
-]
+    t1.join()
+    t2.join()
+    t3.join()
 
-ready_queue = []
-start_time = time.time()
+    avg_cpu = sum(cpu_samples) / len(cpu_samples) if cpu_samples else 0
 
-print("\nStarting EDF Real-Time Simulation with Real Sound...\n")
-
-# -------- حلقة EDF --------
-while time.time() - start_time < TOTAL_RUNTIME:
-    current_time = time.time() - start_time
-
-    # Release tasks
-    for task in tasks:
-        if task.release(current_time):
-            heapq.heappush(ready_queue, (task.deadline, task))
-
-    if ready_queue:
-        deadline, task = heapq.heappop(ready_queue)
-
-        print(f"[EDF] Running {task.name} | Deadline: {deadline:.2f}s")
-
-        exec_start = time.time()
-
-        while time.time() - exec_start < task.execution_time:
-
-            if task.name == "CPU Task":
-                _ = sum(i*i for i in range(20000))
-
-            elif task.name == "Monitor Task":
-                psutil.cpu_percent(interval=None)
-
-            elif task.name == "Sound Task":
-                play_tone(0.5)
-
-        finish_time = time.time() - start_time
-        if finish_time > deadline:
-            task.missed_deadlines += 1
-            print(f"⚠ Deadline Missed for {task.name}")
-
-    else:
-        time.sleep(0.1)
+    print("\n========= RESULTS =========")
+    print(f"Sound Cycles: {sound_cycles}")
+    print(f"Monitor Cycles: {monitor_cycles}")
+    print(f"CPU Cycles: {cpu_cycles}")
+    print(f"Average CPU Usage: {avg_cpu:.2f}%")
+    print("System Stopped Successfully ✅")
 
 
-# -------- حساب Utilization --------
-utilization = sum(task.execution_time / task.period for task in tasks)
-
-print("\n========= EDF RESULTS =========")
-for task in tasks:
-    print(f"{task.name}")
-    print(f"  Instances Executed: {task.instances}")
-    print(f"  Missed Deadlines : {task.missed_deadlines}")
-    print("")
-
-print(f"Total Utilization (U) = {utilization:.2f}")
-
-if utilization <= 1:
-    print("System is Schedulable under EDF ✅")
-else:
-    print("System is NOT Schedulable under EDF ❌")
-
-print("Simulation Finished Successfully ✅")
-
-pygame.mixer.quit()
+if __name__ == "__main__":
+    main()

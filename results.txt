@@ -11,3 +11,45 @@ Average CPU Usage: 20.16%
 
 System Stopped Successfully
 ============================================
+
+========= REAL-TIME SYSTEM RESULTS =========
+Execution Date: 2026-02-28 19:48:27.483612
+Cycles per Task: 20
+Quantum: 2 seconds
+
+Sound Cycles: 20
+Monitor Cycles: 0
+CPU Cycles: 20
+CPU Samples Taken: 0
+Average CPU Usage: 0.00%
+
+System Stopped Successfully
+============================================
+
+========= REAL-TIME SYSTEM RESULTS =========
+Execution Date: 2026-02-28 19:49:58.358663
+Cycles per Task: 20
+Quantum: 2 seconds
+
+Sound Cycles: 20
+Monitor Cycles: 0
+CPU Cycles: 20
+CPU Samples Taken: 0
+Average CPU Usage: 0.00%
+
+System Stopped Successfully
+============================================
+
+========= REAL-TIME SYSTEM RESULTS =========
+Execution Date: 2026-02-28 19:51:23.855922
+Cycles per Task: 20
+Quantum: 2 seconds
+
+Sound Cycles: 20
+Monitor Cycles: 20
+CPU Cycles: 20
+CPU Samples Taken: 20
+Average CPU Usage: 19.20%
+
+System Stopped Successfully
+============================================
